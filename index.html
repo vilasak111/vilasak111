@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 ລະບົບຈັດການສະຕັ໋ອກສິນຄ້າ</title>
+    <style>
+        /* 🎨 ຕົບແຕ່ງພື້ນຫຼັງ ແລະ ຕົວໜັງສືທົ່ວໄປ */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 40px 20px;
+            background-color: #eef2f3; 
+            color: #333;
+        }
+        
+        /* 📦 ກ່ອງຂໍ້ຄວາມຫຼັກ */
+        .container { 
+            max-width: 700px; 
+            margin: auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05); 
+        }
+        
+        h2 { 
+            text-align: center; 
+            color: #2c3e50; 
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        
+        /* ✍️ ຕົບແຕ່ງຟອມປ້ອນຂໍ້ມູນ */
+        .form-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        input { 
+            flex: 1;
+            padding: 12px 15px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 8px; 
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus {
+            border-color: #3498db;
+        }
+        
+        /* 🔵 ປຸ່ມບັນທຶກ */
+        .btn-save { 
+            padding: 12px 25px; 
+            background-color: #3498db; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+        .btn-save:hover { background-color: #2980b9; }
+        
+        /* 📊 ຕົບແຕ່ງຕາຕະລາງ */
+        table { 
+            width: 100%; 
+            margin-top: 15px; 
+            border-collapse: collapse; 
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        th, td { 
+            padding: 14px 18px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #f8fafc; 
+            color: #64748b;
+            font-weight: 600;
+            border-bottom: 2px solid #edf2f7;
+        }
+        td {
+            border-bottom: 1px solid #edf2f7;
+            color: #334155;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        /* ➕ ➖ ປຸ່ມເພີ່ມ/ລຸດຈຳນວນ */
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-qty { 
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold; 
+            font-size: 16px; 
+            background-color: #cbd5e1; 
+            border: none; 
+            color: #334155; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+        .btn-qty:hover { background-color: #94a3b8; color: white; }
+        .qty-value {
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        /* 🔴 ປຸ່ມລຶບ */
+        .btn-delete { 
+            background-color: #fee2e2; 
+            color: #ef4444;
+            padding: 6px 12px; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: 500;
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+        .btn-delete:hover { background-color: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📦 ລະບົບຈັດການສະຕັ໋ອກສິນຄ້າ</h2>
+    
+    <div class="form-group">
+        <input type="text" id="pName" placeholder="📥 ຊື່ສິນຄ້າ...">
+        <input type="number" id="pQty" placeholder="🔢 ຈຳນວນ...">
+        <button class="btn-save" onclick="saveProduct()">ເພີ່ມສິນຄ້າ</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ຊື່ສິນຄ້າ</th>
+                <th>ຈຳນວນໃນສະຕັ໋ອກ</th>
+                <th style="text-align: right;">ຈັດການ</th>
+            </tr>
+        </thead>
+        <tbody id="myTable"></tbody>
+    </table>
+</div>
+
+<script>
+    async function showProducts() {
+        const response = await fetch('http://127.0.0.1:5000/api/products');
+        const data = await response.json();
+        
+        const table = document.getElementById("myTable");
+        table.innerHTML = ""; 
+        
+        data.forEach(item => {
+            table.innerHTML += `
+                <tr>
+                    <td style="font-weight: 500;">${item.name}</td>
+                    <td>
+                        <div class="qty-controls">
+                            <button class="btn-qty" onclick="changeQty(${item.id}, 'decrease')">−</button>
+                            <span class="qty-value">${item.qty} ຊິ້ນ</span>
+                            <button class="btn-qty" onclick="changeQty(${item.id}, 'increase')">+</button>
+                        </div>
+                    </td>
+                    <td style="text-align: right;">
+                        <button class="btn-delete" onclick="deleteProduct(${item.id})">ລຶບ</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    async function saveProduct() {
+        const name = document.getElementById("pName").value;
+        const qty = document.getElementById("pQty").value;
+
+        if(!name || !qty) return alert("ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ!");
+
+        await fetch('http://127.0.0.1:5000/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, qty: qty })
+        });
+
+        document.getElementById("pName").value = "";
+        document.getElementById("pQty").value = "";
+        showProducts(); 
+    }
+
+    async function changeQty(id, action) {
+        await fetch(`http://127.0.0.1:5000/api/products/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action })
+        });
+        showProducts(); 
+    }
+
+    async function deleteProduct(id) {
+        if (confirm("ເຈົ້າແນ່ໃຈບໍ່ວ່າຈະລຶບສິນຄ້ານີ້?")) {
+            await fetch(`http://127.0.0.1:5000/api/products/${id}`, {
+                method: 'DELETE'
+            });
+            showProducts(); 
+        }
+    }
+
+    showProducts();
+</script>
+
+</body>
+</html>
